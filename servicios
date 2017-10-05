@@ -1,0 +1,29 @@
+#!/bin/sh
+#LAN --> DMZ todos servicios
+iptables -A FORWARD -i LAN -o DMZ -j ACCEPT
+iptables -A FORWARD -i DMZ -o LAN -j ACCEPT
+iptables -A FORWARD -i eth0 -o LAN -j ACCEPT
+iptables -A FORWARD -i LAN -o eth0 -j ACCEPT
+
+#DMZ --> LAN solo ping
+iptables -A FORWARD -i DMZ -p icmp -o LAN -j ACCEPT
+iptables -A FORWARD -i LAN -p icmp -o DMZ -j ACCEPT
+
+#DMZ --> WAN http,https,ping,dns
+iptables -A FORWARD -i eth0 -p tcp -o DMZ --dport 80 -j ACCEPT
+iptables -A FORWARD -i DMZ -p tcp -o eth0 --sport 80 -j ACCEPT
+iptables -A FORWARD -i eth0 -p udp -o DMZ --dport 53 -j ACCEPT
+iptables -A FORWARD -i DMZ -p udp -o eth0 --sport 53 -j ACCEPT
+iptables -A FORWARD -i eth0 -p tcp -o DMZ --dport 443 -j ACCEPT
+iptables -A FORWARD -i DMZ -p tcp -o eth0 --sport 443 -j ACCEPT
+iptables -A FORWARD -i eth0 -p icmp -o DMZ -j ACCEPT
+iptables -A FORWARD -i DMZ -p icmp -o eth0 -j ACCEPT
+
+#LAN/DMZ --> FW ssh•••••••
+
+iptables -A INPUT -o LAN -p tcp --dport 22 -j ACCEPT
+iptables -A OUTPUT -i LAN -p tcp --sport 22 -j ACCEPT
+
+
+#LAN/DMZ nat
+iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
